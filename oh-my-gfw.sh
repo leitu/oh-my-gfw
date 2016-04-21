@@ -104,9 +104,9 @@ change_repository{
       ${BASH_C} sed -i "s/archive.${LSB_DISTRO}.com/${MIRROR_REPO}/g" /etc/apt/sources.list
      #if [ "${LSB_DISTRO}" == "ubuntu" ]
       #then
-      ${BASH_C} echo 'deb http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO} ${LSB_CODE} multiverse' >> /etc/apt/sources.list
-      ${BASH_C} echo 'deb-src http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO}  ${LSB_CODE} multiverse' >> /etc/apt/sources.list
-      fi
+      #${BASH_C} echo 'deb http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO} ${LSB_CODE} multiverse' >> /etc/apt/sources.list
+      #${BASH_C} echo 'deb-src http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO}  ${LSB_CODE} multiverse' >> /etc/apt/sources.list
+      #fi
       ;;
       
 }
