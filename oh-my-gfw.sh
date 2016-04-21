@@ -93,16 +93,17 @@ check_distro() {
 }
 
 change_repository{
-    if (command_exist sudo);then
+    if (check_command_exist sudo);then
       BASH_C="sudo -E bash -c"
     else
       echo "You have to run this with root"
     fi
+    
     case "${LSB_DISTRO}" in
       ubuntu|debian)
       ${BASH_C} sed -i "s/archive.${LSB_DISTRO}.com/${MIRROR_REPO}/g" /etc/apt/sources.list
-      if [ "${LSB_DISTRO}" == "ubuntu" ]
-      then
+     #if [ "${LSB_DISTRO}" == "ubuntu" ]
+      #then
       ${BASH_C} echo 'deb http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO} ${LSB_CODE} multiverse' >> /etc/apt/sources.list
       ${BASH_C} echo 'deb-src http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO}  ${LSB_CODE} multiverse' >> /etc/apt/sources.list
       fi
