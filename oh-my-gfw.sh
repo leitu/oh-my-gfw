@@ -1,11 +1,25 @@
 #!/bin/bash
+#Basically I'm not fan of aliyun, but aliyum almost provide all of the repositories
+#Feel free to modify
+
 
 set -e
 
 export PATH="$PATH:/usr/local/bin"
 
 #Mirror
-MIRROR_REPO=mirrors.aliyun.com
+MIRROR_REPO=http://mirrors.aliyun.com
+NPM_REPO=https://registry.npm.taobao.org
+PIP_REPO=${MIRROR_REPO}
+GEM_REPO=https://ruby.taobao.org/
+
+#Docker mirror 
+#Docker is poiting to the daocloud.io, unfortunately you need to register
+#if you need to use this mirror, you can put this to true and replace to your register name
+
+DOCKER_MIRROR_ENABLE=false
+DAOCLOUD_ACCOUNT=dummyaccount
+DOCKER_MIRROR_REGISTRY=
 
 #Get current user id
 CURRENT_USER="$(id -un 2>/dev/null || true)"
@@ -19,11 +33,58 @@ FEDORA_VER=(20 21 22)
 
 #Fuction
 #main
-
+main() {
+    #change repository
+    change_repository
+    
+    #change node js npm
+    if ( check_command_exist npm );then
+       change_npm
+    else
+       echo "[INFO] NPM is not INSTALLED"
+    fi
+    
+    #change pip
+    if (check_command_exist pip) || (check_command_exist pip3); then
+       change_pip
+    else 
+       echo "[INFO] pip is not INSTALLED"
+    fi
+    #change gem
+    if (check_command_exist gem);then
+       change_gem
+    else
+       echo "[INFO] gem is not INSTALLED"
+    fi
+    
+    #add go src
+    #There is not way to speed up go install/go get....
+    if (check_command_exist go);then
+       add_go_src
+    else
+       echo "[INFO] go is not INSTALLED"
+    
+    #change docker mirror
+    if (check_command_exist docker) && (DOCKER_MIRROR_ENABLE = true); then
+       change_docker_mirror
+    else
+       echo "[INFO] docker is not CHANGED"
+    if
+}
 #fuctions
 
 check_command_exist() {
   type "$@" > /dev/null 2>&1
+}
+
+
+check_git_exit() {
+    if (check_command_exist git); then
+        echo "[INFO]Git found"
+    else 
+        "You have to install git"
+        exit 1
+    fi
 }
 
 check_user(){
@@ -108,6 +169,71 @@ change_repository{
       #${BASH_C} echo 'deb-src http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO}  ${LSB_CODE} multiverse' >> /etc/apt/sources.list
       #fi
       ;;
-      
+      centos)
+      ${BASH_C} rpm --import ${MIRROR_REPO}/centos/RPM-GPG-KEY-CentOS-${LSB_VER}
+      ${BASH_C} wget -O /etc/yum.repos.d/CentOS-Base.repo $MIRROR_REPO/repo/CentOS-${LSB_VER}.repo
+      ${BASH_C} wget -qO /etc/yum.repos.d/epel.repo $MIRROR_REPO/repo/epel-${LSB_VER}.repo
+      ${BASH_C} yum clean metadata
+      ${BASH_C} yum makecache
+      ;;
+      fedora)
+      ${BASH_C} wget -O /etc/yum.repos.d/Fedora-Base.repo ${MIRROR_REPO}/repo/fedora.repo
+      ${BASH_C} wget -qO /etc/yum.release/Fedora-Update.repo ${MIRROR_REPO}/repo/fedora-updates.repo
+      ;;
+      *)
+      echo "Your ${LSB_DISTRO} is not in support list"
+      exit 1
+      ;;
+     esac
 }
 
+add_go_src() {
+    set -u 
+    
+    check_git_exit
+    
+    if [ ! -z ${GOPATH}]; then
+      mkdir -p ${GOPATH}/src/golang.org/x/
+      git clone git@github.com:golang/tools.git ${GOPATH}/src/golang.org/x/
+    else 
+      echo "Please setup \$GOPATH"
+    set +u
+}
+
+change_npm() {
+    ${BASH_C} npm config set registry ${NPM_REPO}
+}
+
+change_pip() {
+    set -u
+    PIP_CONF=${HOME}/.pip/pip.conf
+    ${BASH_C} cat ${PIP_CONF} << EOF
+    [global]
+    index-url = ${PIP_REPO}/pypi/simple/
+    EOF
+    set +u 
+}
+
+change_gem() {
+    gem sources --add ${GEM_REPO} --remove https://rubygems.org/
+}
+
+change_docker_mirror() {
+     if (check_command_exist sudo);then
+      BASH_C="sudo -E bash -c"
+    else
+      echo "You have to run this with root"
+    fi
+    case ${LSB_DISTRO} in
+    ubuntu|debian)
+      ${BASH_C} echo "DOCKER_OPTS=\"\$DOCKER_OPTS --registry-mirror=http://${DAOCLOUD_ACCOUNT}.m.daocloud.io\"" >> /etc/default/docker
+      ;;
+    centos|fedora)
+      ${BASH_C} sudo sed -i "s|OPTIONS=|OPTIONS=--registry-mirror=http://${DAOCLOUD_ACCOUNT}.m.daocloud.io |g" /etc/sysconfig/docker
+      ;;
+     *)
+      echo "Your ${LSB_DISTRO} is not supported"
+      ;;
+     esac
+     ${BASH_C} service docker restart
+}
