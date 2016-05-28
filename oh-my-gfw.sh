@@ -50,6 +50,7 @@ main() {
     else 
        echo "[INFO] pip is not INSTALLED"
     fi
+
     #change gem
     if (check_command_exist gem);then
        change_gem
@@ -63,13 +64,14 @@ main() {
        add_go_src
     else
        echo "[INFO] go is not INSTALLED"
+    fi
     
     #change docker mirror
     if (check_command_exist docker) && (DOCKER_MIRROR_ENABLE = true); then
        change_docker_mirror
     else
        echo "[INFO] docker is not CHANGED"
-    if
+    fi
 }
 #fuctions
 
@@ -197,6 +199,8 @@ add_go_src() {
       git clone git@github.com:golang/tools.git ${GOPATH}/src/golang.org/x/
     else 
       echo "Please setup \$GOPATH"
+    fi
+
     set +u
 }
 
@@ -207,10 +211,12 @@ change_npm() {
 change_pip() {
     set -u
     PIP_CONF=${HOME}/.pip/pip.conf
+
     ${BASH_C} cat ${PIP_CONF} << EOF
     [global]
     index-url = ${PIP_REPO}/pypi/simple/
-    EOF
+EOF
+
     set +u 
 }
 
@@ -224,6 +230,7 @@ change_docker_mirror() {
     else
       echo "You have to run this with root"
     fi
+
     case ${LSB_DISTRO} in
     ubuntu|debian)
       ${BASH_C} echo "DOCKER_OPTS=\"\$DOCKER_OPTS --registry-mirror=http://${DAOCLOUD_ACCOUNT}.m.daocloud.io\"" >> /etc/default/docker
