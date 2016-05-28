@@ -8,9 +8,11 @@ set -e
 export PATH="$PATH:/usr/local/bin"
 
 #Mirror
-MIRROR_REPO=http://mirrors.aliyun.com
+
+MIRROR_REPO=mirrors.aliyun.com
+HTTP_MIRROR_REPO=http://mirrors.aliyun.com
 NPM_REPO=https://registry.npm.taobao.org
-PIP_REPO=${MIRROR_REPO}
+PIP_REPO=${HTTP_MIRROR_REPO}
 GEM_REPO=https://ruby.taobao.org/
 
 #Docker mirror 
@@ -34,6 +36,8 @@ FEDORA_VER=(20 21 22)
 #Fuction
 #main
 main() {
+  
+    check_distro
     #change repository
     change_repository
     
@@ -100,7 +104,7 @@ check_user(){
 
 check_distro() {
   LSB_DISTRO=""; LSB_VER=""; LSB_CODE=""
-  if (command_exist lsb_release);then
+  if (check_command_exist lsb_release);then
     LSB_DISTRO="$(lsb_release -si)"
     LSB_VER="$(lsb_release -sr)"
     LSB_CODE="$(lsb_release -sc)"
@@ -151,19 +155,25 @@ check_distro() {
        exit 1
     ;;
   esac
-  echo -n "."
+  #echo -n "."
   
 }
 
 change_repository(){
+#    check_user
+
     if (check_command_exist sudo);then
-      BASH_C="sudo -E bash -c"
+      BASH_C="sudo"
     else
       echo "You have to run this with root"
     fi
     
+    ##Debug
+    #echo "${LSB_DISTRO}"
+    
     case "${LSB_DISTRO}" in
       ubuntu|debian)
+
       ${BASH_C} sed -i "s/archive.${LSB_DISTRO}.com/${MIRROR_REPO}/g" /etc/apt/sources.list
      #if [ "${LSB_DISTRO}" == "ubuntu" ]
       #then
@@ -172,15 +182,15 @@ change_repository(){
       #fi
       ;;
       centos)
-      ${BASH_C} rpm --import ${MIRROR_REPO}/centos/RPM-GPG-KEY-CentOS-${LSB_VER}
-      ${BASH_C} wget -O /etc/yum.repos.d/CentOS-Base.repo $MIRROR_REPO/repo/CentOS-${LSB_VER}.repo
-      ${BASH_C} wget -qO /etc/yum.repos.d/epel.repo $MIRROR_REPO/repo/epel-${LSB_VER}.repo
+      ${BASH_C} rpm --import ${HTTP_MIRROR_REPO}/centos/RPM-GPG-KEY-CentOS-${LSB_VER}
+      ${BASH_C} wget -O /etc/yum.repos.d/CentOS-Base.repo ${HTTP_MIRROR_REPO}/repo/CentOS-${LSB_VER}.repo
+      ${BASH_C} wget -qO /etc/yum.repos.d/epel.repo ${HTTP_MIRROR_REPO}/repo/epel-${LSB_VER}.repo
       ${BASH_C} yum clean metadata
       ${BASH_C} yum makecache
       ;;
       fedora)
-      ${BASH_C} wget -O /etc/yum.repos.d/Fedora-Base.repo ${MIRROR_REPO}/repo/fedora.repo
-      ${BASH_C} wget -qO /etc/yum.release/Fedora-Update.repo ${MIRROR_REPO}/repo/fedora-updates.repo
+      ${BASH_C} wget -O /etc/yum.repos.d/Fedora-Base.repo ${HTTP_MIRROR_REPO}/repo/fedora.repo
+      ${BASH_C} wget -qO /etc/yum.release/Fedora-Update.repo ${HTTP_MIRROR_REPO}/repo/fedora-updates.repo
       ;;
       *)
       echo "Your ${LSB_DISTRO} is not in support list"
@@ -209,12 +219,21 @@ change_npm() {
 }
 
 change_pip() {
+    ##check .pip if existing
     set -u
-    PIP_CONF=${HOME}/.pip/pip.conf
+    PIP_DIR=${HOME}/.pip
+    PIP_CONF=${PIP_DIR}/pip.conf
 
-    ${BASH_C} cat ${PIP_CONF} << EOF
-    [global]
-    index-url = ${PIP_REPO}/pypi/simple/
+    ##debug
+    echo "${PIP_DIR}"
+    echo "${PIP_CONF}"
+    echo "${BASH_C}"
+    echo "${PIP_REPO}"
+
+    #TODO add user
+    cat << EOF > ${PIP_CONF}
+[global]
+index-url = ${PIP_REPO}/pypi/simple/
 EOF
 
     set +u 
