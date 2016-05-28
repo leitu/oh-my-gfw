@@ -153,7 +153,7 @@ check_distro() {
   
 }
 
-change_repository{
+change_repository(){
     if (check_command_exist sudo);then
       BASH_C="sudo -E bash -c"
     else
@@ -237,3 +237,7 @@ change_docker_mirror() {
      esac
      ${BASH_C} service docker restart
 }
+
+
+#Run main function
+main
