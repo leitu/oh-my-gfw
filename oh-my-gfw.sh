@@ -176,6 +176,7 @@ change_repository(){
 
       ${BASH_C} sed -i "s/http:\/\/.*.archive.${LSB_DISTRO}.com/http:\/\/${MIRROR_REPO}/g" /etc/apt/sources.list
       echo "[INFO] Your ${LSB_DISTRO} has changed to ${MIRROR_REPO}"
+      grep "^deb" /etc/apt/sources.list
       ${BASH_C} apt-get update -qq
      #if [ "${LSB_DISTRO}" == "ubuntu" ]
       #then
