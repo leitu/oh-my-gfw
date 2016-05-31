@@ -28,7 +28,7 @@ CURRENT_USER="$(id -un 2>/dev/null || true)"
 
 #Supper Version Linux
 SUPPORT_DISTRO=(debian ubuntu fedora centos)
-UBUNTU_CODE=(trusty utopic vivid wily xenial)
+UBUNTU_CODE=(precise trusty utopic vivid wily xenial)
 DEBIAN_CODE=(jessie wheezy)
 CENTOS_VER=(6 7)
 FEDORA_VER=(20 21 22)
@@ -174,7 +174,7 @@ change_repository(){
     case "${LSB_DISTRO}" in
       ubuntu|debian)
 
-      ${BASH_C} sed -i "s/archive.${LSB_DISTRO}.com/${MIRROR_REPO}/g" /etc/apt/sources.list
+      ${BASH_C} sed -i "s/http:\/\/.*.archive.${LSB_DISTRO}.com/${HTTP_MIRROR_REPO}/g" /etc/apt/sources.list
      #if [ "${LSB_DISTRO}" == "ubuntu" ]
       #then
       #${BASH_C} echo 'deb http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO} ${LSB_CODE} multiverse' >> /etc/apt/sources.list
