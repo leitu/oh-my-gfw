@@ -176,6 +176,7 @@ change_repository(){
 
       ${BASH_C} sed -i "s/http:\/\/.*.archive.${LSB_DISTRO}.com/http:\/\/${MIRROR_REPO}/g" /etc/apt/sources.list
       echo "[INFO] Your ${LSB_DISTRO} has changed to ${MIRROR_REPO}"
+      ${BASH_C} apt-get update -qq
      #if [ "${LSB_DISTRO}" == "ubuntu" ]
       #then
       #${BASH_C} echo 'deb http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO} ${LSB_CODE} multiverse' >> /etc/apt/sources.list
