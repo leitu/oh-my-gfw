@@ -19,7 +19,7 @@ GEM_REPO=https://ruby.taobao.org/
 #Docker is poiting to the daocloud.io, unfortunately you need to register
 #if you need to use this mirror, you can put this to true and replace to your register name
 
-DOCKER_MIRROR_ENABLE=false
+DOCKER_MIRROR_ENABLE="false"
 DAOCLOUD_ACCOUNT=dummyaccount
 DOCKER_MIRROR_REGISTRY=
 
@@ -71,7 +71,7 @@ main() {
     fi
     
     #change docker mirror
-    if (check_command_exist docker) && (DOCKER_MIRROR_ENABLE = true); then
+    if (check_command_exist docker) && (${DOCKER_MIRROR_ENABLE} = "true"); then
        change_docker_mirror
     else
        echo "[INFO] docker is not CHANGED"
@@ -174,7 +174,8 @@ change_repository(){
     case "${LSB_DISTRO}" in
       ubuntu|debian)
 
-      ${BASH_C} sed -i "s/http:\/\/.*.archive.${LSB_DISTRO}.com/${HTTP_MIRROR_REPO}/g" /etc/apt/sources.list
+      ${BASH_C} sed -i "s/http:\/\/.*.archive.${LSB_DISTRO}.com/http:\/\/${MIRROR_REPO}/g" /etc/apt/sources.list
+      echo "[INFO] Your ${LSB_DISTRO} has changed to ${MIRROR_REPO}"
      #if [ "${LSB_DISTRO}" == "ubuntu" ]
       #then
       #${BASH_C} echo 'deb http://${MIRROR_REPO}/${LSB_DISTRO}/${LSB_DISTRO} ${LSB_CODE} multiverse' >> /etc/apt/sources.list
@@ -215,7 +216,9 @@ add_go_src() {
 }
 
 change_npm() {
-    ${BASH_C} npm config set registry ${NPM_REPO}
+    ${BASH_C} npm config set registry ${NPM_REPO} > /dev/null 2>&1
+    echo "[INFO] NPM registry changed to ${NPM_REPO}"
+
 }
 
 change_pip() {
@@ -224,23 +227,32 @@ change_pip() {
     PIP_DIR=${HOME}/.pip
     PIP_CONF=${PIP_DIR}/pip.conf
 
+    if [ ! -d ${PIP_DIR} ]; then
+        mkdir $PIP_DIR
+    else
+        echo "[WARNING] ${PIP_DIR} is existing"
+    fi
+
     ##debug
-    echo "${PIP_DIR}"
-    echo "${PIP_CONF}"
-    echo "${BASH_C}"
-    echo "${PIP_REPO}"
+    #echo "${PIP_DIR}"
+    #echo "${PIP_CONF}"
+    #echo "${BASH_C}"
+    #echo "${PIP_REPO}"
 
     #TODO add user
     cat << EOF > ${PIP_CONF}
 [global]
 index-url = ${PIP_REPO}/pypi/simple/
 EOF
-
+    
+    echo "[INFO] PIP repository changed to ${PIP_REPO}"
     set +u 
 }
 
 change_gem() {
-    gem sources --add ${GEM_REPO} --remove https://rubygems.org/
+    gem sources --add ${GEM_REPO} --remove https://rubygems.org/ > /dev/null 2>&1
+    echo "[INFO] GEM repository changed to ${GEM_REPO}"
+
 }
 
 change_docker_mirror() {
